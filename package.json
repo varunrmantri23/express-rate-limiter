@@ -1,0 +1,32 @@
+{
+  "name": "akto-backend",
+  "version": "1.0.0",
+  "description": "api-rate-limiter",
+  "keywords": [
+    "rate-limiter",
+    "logs",
+    "sliding-window"
+  ],
+  "homepage": "https://github.com/varunrmantri23/express-rate-limiter#readme",
+  "bugs": {
+    "url": "https://github.com/varunrmantri23/express-rate-limiter/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/varunrmantri23/express-rate-limiter.git"
+  },
+  "license": "ISC",
+  "author": "varunrmantri23",
+  "type": "commonjs",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "nodemon",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "nodemon": "^3.1.10",
+    "redis": "^5.5.6"
+  }
+}
