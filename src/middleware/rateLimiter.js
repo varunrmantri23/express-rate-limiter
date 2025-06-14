@@ -30,8 +30,8 @@ const rateLimiter = (client, options = {}) => {
         return res.status(429).json({
           error: "Rate limit exceeded",
           message: `max ${maxRequests} requests per ${windowSeconds} seconds`,
-          retryAfter: windowSeconds,
-          currentCount: requestCount, //to test the working
+          retryAfter: `retry after ${windowSeconds} seconds`,
+          details: `You have made ${requestCount + 1} requests, limit is ${maxRequests}`
         });
       }
 
