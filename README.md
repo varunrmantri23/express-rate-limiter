@@ -62,7 +62,7 @@ Testing Rate Limiting:
 
 I tested the rate limiter using the watch command to see real-time behavior:
 
-watch "curl -i http://localhost:3000/test"
+watch "curl -i http://localhost:3000/"
 
 This command repeatedly hits the endpoint every 2 seconds, showing:
 - First 10 requests: Status 200
