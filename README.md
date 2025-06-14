@@ -7,30 +7,36 @@ A mini API rate limiter that limits requests from a single IP using sliding wind
 Tech Stack:
 
 - Node.js with Express (simple and effective for APIs)
-- Redis for storing request counts (fast, in-memory, perfect for rate limiting)
+- Redis for storing request counts (fast, in-memory)
 - JavaScript
 - Local Redis setup
-- Sliding window algorithm
+- Sliding window algorithm using sorted sets
 
-Project Structure:
+My Approach - Step by Step:
 
-- src/index.js - main server file with routes and startup logic
-- src/config/redis.js - handles all Redis connection and utility functions
-- src/middleware/rateLimiter.js - core sliding window rate limiting logic
-- src/controllers/apiController.js - handles request/response logic
-- src/routes/apiRoutes.js - defines API endpoints and routing
-- src/config/rateLimitConfig.js - different rate limiting configurations that can be used 
-- docs/images/ - documentation assets
-- .env - environment variables (port, redis host/port)
-- package.json - dependencies and scripts
+1. Architecture Planning
+   - chose sliding window over fixed window for smooth rate limiting
+   - selected Redis sorted sets for efficient timestamp-based queries
+   - designed modular structure for maintainability
 
-My Approach:
+2. Redis Integration
+   - set up Redis client with proper connection handling
+   - added automatic cleanup of expired entries
 
-1. Set up basic Express server with Redis connection
-2. Server connects to Redis first, then starts listening for requests
-3. Built sliding window rate limiter with timestamps
-4. Implemented proper error handling
-5. Organized code in modular structure for maintainability
+3. Sliding Window Implementation (core logic here)
+   - use timestamps as scores in Redis sorted sets
+   - remove expired entries before counting current requests
+   - add new requests with unique timestamps
+
+4. API Development
+   - built Express server with proper middleware structure
+   - created test endpoints to demonstrate rate limiting
+   - added comprehensive error handling and user-friendly responses
+
+5. Testing and Validation
+   - manual testing with watch command for real-time observation
+   - verified sliding window behavior across time periods
+   - documented results with screenshots
 
 How the Rate Limiter Works:
 
@@ -41,11 +47,21 @@ How the Rate Limiter Works:
 - Returns 429 status with helpful error message
 - Includes rate limit headers to guide client behavior
 
+Project Structure:
+
+- src/index.js - main server file with routes and startup logic
+- src/config/redis.js - handles all Redis connection and utility functions
+- src/middleware/rateLimiter.js - core sliding window rate limiting logic
+- src/controllers/apiController.js - handles request/response logic
+- src/routes/apiRoutes.js - defines API endpoints and routing
+- docs/images/ - documentation assets
+- .env - environment variables
+- package.json - dependencies and scripts
+
 Available Endpoints:
 
-- GET / - Server status and info (lenient: 20 req/min)
-- GET /test - Test endpoint to demo rate limiting (standard: 10 req/min)
-- GET /sensitive - Sensitive endpoint with strict limiting (strict: 5 req/min)
+- GET / - Server status and info
+- GET /test - Test endpoint to demo rate limiting  
 - Any other route - Returns 404 with available endpoints
 
 How to run:
@@ -54,9 +70,7 @@ How to run:
 2. npm install
 3. npm start (uses nodemon for auto-restart)
 4. Server runs on localhost:3000
-5. watch "curl -i http://localhost:3000/test" in another terminal and watch the responses
-
-
+5. Run `watch "curl -i http://localhost:3000/test"` in another terminal and watch the responses
 
 Testing Rate Limiting:
 
@@ -65,9 +79,9 @@ I tested the rate limiter using the watch command to see real-time behavior:
 watch "curl -i http://localhost:3000/"
 
 This command repeatedly hits the endpoint every 2 seconds, showing:
-- First 10 requests: Status 200
+- First 10 requests: Status 200 with rate limit headers
 - 11th+ requests: Status 429 "Rate limit exceeded"
-- After 60 seconds: Requests allowed again as window slides
+- After 60 seconds from first request: Requests allowed again as window slides
 
 Demo Results:
 
@@ -75,21 +89,11 @@ Demo Results:
 
 ![Rate Limiting example](./docs/images/demo-2.png)
 
-The rate limiter works perfectly as demonstrated in the screenshot. When testing with the watch command, I could see the rate limiting kick in after 10 requests, returning 429 errors with clear retry information. After waiting for the window to reset, requests were allowed again, proving the sliding window mechanism works correctly.
+The rate limiter works perfectly as demonstrated in the screenshots. When testing with the watch command, I could see the rate limiting kick in after exactly 10 requests, returning 429 errors with clear retry information. After waiting for the window to reset, requests were allowed again, proving the sliding window mechanism works correctly.
 
-Current Status:
-✓ Basic server setup complete
-✓ Redis connection working with proper error handling
-✓ Environment configuration done
-✓ Project structure organized with controllers and routes
-✓ Sliding window rate limiter implemented
-✓ Multiple rate limiting tiers (strict, standard, lenient) for future 
-✓ Rate limiting middleware working perfectly
-✓ Clean, modular code architecture
+Technical Implementation Details:
 
-Key Features:
-
-- Smooth sliding window algorithm
-- Automatic cleanup of expired entries for memory efficiency
-- Accurate IP detection with proxy support (X-Forwarded-For)
-- Helpful rate limit headers guide clients on remaining quota
+Algorithm: Sliding Window with Redis ZSET -- sorted sets 
+- Key: rate_limit:{IP_address}
+- Score: timestamp in milliseconds  
+- Value: unique identifier to prevent duplicates
