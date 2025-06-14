@@ -9,8 +9,8 @@ const rateLimiter = (client, options = {}) => {
 
   return async (req, res, next) => {
     try {
-      const clientIp = req.ip || "unknown";
-      const key = `${clientIp}`;
+      const clientIp = req.ip || req.headers['x-forwarded-for']?.split(',')[0] || "unknown";
+      const key = `ip_is:${clientIp}`;
       const now = Date.now(); //to get current time with accuracy in ms
       const start = now - windowSeconds * 1000;
 
@@ -19,7 +19,13 @@ const rateLimiter = (client, options = {}) => {
       const requestCount = await client.zCard(key);
 
       // check limit
-      if (requestCount > maxRequests) {
+      if (requestCount >= maxRequests) {
+        //add headers to guide better 
+        res.set({
+          'X-RateLimit-Limit': maxRequests,
+          'Retry-After': windowSeconds
+        });
+        
         //above maxreq, we throw 429
         return res.status(429).json({
           error: "Rate limit exceeded",

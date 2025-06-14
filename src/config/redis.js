@@ -6,8 +6,10 @@ const isRedisReady = (client) => {
 
 const createRedisClient = () => {
   const client = redis.createClient({
+    socket: {
     host: process.env.REDIS_HOST || "localhost",
     port: process.env.REDIS_PORT || 6379,
+  }
     // url: process.env.REDIS_URL, //if using a url we can uncomment
   });
 

@@ -1,7 +1,10 @@
 const express = require("express");
 const { createRedisClient, connectRedis } = require("./config/redis");
 const { rateLimiter } = require("./middleware/rateLimiter");
+const { errorHandler } = require("./middleware/errorHandler");
+const apiRoutes = require("./routes/apiRoutes");
 require("dotenv").config();
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,7 +15,9 @@ const client = createRedisClient();
 //middleware
 app.use(express.json());
 
-app.set("trust proxy", true); //for better and accurate ip detection
+/*for testing, allow X-Forwarded-for from 1 hop*/
+app.set("trust proxy", true); 
+
 
 app.use(
   rateLimiter(client, {
@@ -21,33 +26,9 @@ app.use(
   })
 );
 
-app.get("/", (req, res) => {
-  res.send("Server is running! Hey there!");
-});
+app.use('/', apiRoutes);
+app.use(errorHandler);
 
-app.get("/test", (req, res) => {
-  res.json({
-    message: "Test endpoint - rate limited",
-    ip: req.ip,
-    timestamp: new Date().toISOString(),
-  });
-});
-
-app.use((req, res) => {
-  res.status(404).json({
-    error: "Endpoint not found",
-    message: `${req.method} ${req.originalUrl} is not available`,
-    availableEndpoints: ["GET /", "GET /test"],
-  });
-});
-
-app.use((error, req, res, next) => {
-  console.error("Server error:", error);
-  res.status(500).json({
-    error: "Internal server error",
-    message: "Something went wrong",
-  });
-});
 
 const startServer = async () => {
   try {
